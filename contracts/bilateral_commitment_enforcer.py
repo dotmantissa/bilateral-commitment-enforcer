@@ -2372,8 +2372,15 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         url = _collapse(evidence_url)
         self._require(bool(url), "evidence_url is required")
         self._require(len(url) <= MAX_URL, f"evidence_url exceeds {MAX_URL} characters")
+
+        # One canonical form drives both the validation and the replay index. Checking
+        # the raw string instead would make the two disagree: `HTTPS://host/path` is a
+        # perfectly valid URL that a case sensitive pattern refuses, while the
+        # normalizer already folds its scheme, so the same page would be refused here
+        # and recognised as a repeat there.
+        canonical = _normalize_url(url)
         self._require(
-            bool(re.match(r"^https?://[^\s/$.?#][^\s]*$", url)),
+            bool(re.match(r"^https?://[^\s/$.?#][^\s]*$", canonical)),
             "evidence_url must be an http or https URL that validators can reach",
         )
 
@@ -2382,7 +2389,7 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         # digest is over the normalized URL, computed here in deterministic code,
         # never over fetched content, because a leader's fetch and a validator's
         # fetch of the same page are allowed to differ.
-        url_digest = _digest("evidence", _normalize_url(url))
+        url_digest = _digest("evidence", canonical)
         seen_key = f"{key}\x1f{side}\x1f{url_digest}"
         self._require(
             seen_key not in self.evidence_seen,
@@ -2534,6 +2541,13 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         against would punish the party that relied on the confirmation in good
         faith, so the clock stands and the overturned side simply loses its own
         credit.
+
+        An overturned side returns to OPEN if its own deadline has not passed and it
+        has an attempt left, so it can cure the defect the challenge identified. That
+        is the same courtesy the resubmission path extends to a side that fell short
+        on its first try, and withholding it here would turn a challenge into a way
+        to end a pact rather than a way to correct it. A side with nothing left,
+        either out of time or out of attempts, goes straight to BREACHED.
         """
         pact = self._pact(pact_id)
         key = pact.pact_id
