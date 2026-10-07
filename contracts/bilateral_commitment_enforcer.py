@@ -1305,6 +1305,12 @@ class BilateralCommitmentEnforcer(gl.Contract):
             return False
         if bool(ob.challenge_used):
             return False
+        # A pact that declared no challenge window closes `challenge_closes_at` on
+        # the confirmation instant itself, so the window is empty rather than
+        # momentarily open. Comparing against the confirmation rather than against
+        # zero also closes the window a spent challenge leaves behind.
+        if int(ob.challenge_closes_at) <= int(ob.confirmed_at):
+            return False
         return now <= int(ob.challenge_closes_at)
 
     def _resolvable(self, pact: Pact, now: int) -> tuple:
