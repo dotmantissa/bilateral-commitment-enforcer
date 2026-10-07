@@ -1,0 +1,12 @@
+[project]
+name = "bilateral-commitment-enforcer"
+version = "1.0.0"
+description = "Bilateral Commitment Enforcer, a GenLayer primitive that holds both sides of a mutual obligation and adjudicates each side's natural language commitment against public evidence"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v -p no:gltest"
+markers = [
+  "integration: live GenLayer network tests, enabled by setting GENLAYER_PRIVATE_KEY",
+]
