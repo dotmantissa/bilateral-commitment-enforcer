@@ -1,4 +1,3 @@
-# v0.2.16
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 """
@@ -100,14 +99,12 @@ leader's answer; every validator redoes the work and compares outcomes.
    own item scores, its own tier. It does not inspect the shape of the leader's
    reply and it does not ask a model whether the leader looked reasonable.
 
-   Agreement requires the credit tier, which is what sets the money. One
-   concession is made for borderline work: when the two sides' point totals
-   differ by no more than `tier_tolerance_points` and the pass or fail side of
-   the threshold is identical, adjacent tiers are accepted and the leader's tier
-   is stored. The pass or fail verdict is therefore always strictly agreed, and
-   leader discretion over the credit is bounded to one tier step and only ever
-   in cases where two panels counted the same evidence one point apart. A
-   steward that wants no discretion at all sets the tolerance to zero.
+   Agreement requires the exact credit tier, which is what sets the money.
+   Adjacent tiers are rejected even when both fail and the point totals differ
+   by only one. Point totals may differ within the same tier because all such
+   readings produce the same canonical credit and settlement. The deprecated
+   `tier_tolerance_points` term is retained for compatibility, but never relaxes
+   this rule, regardless of the value supplied by a creator or steward.
 
 3. Challenge re-adjudication (`challenge_fulfilment`)
 
@@ -278,7 +275,7 @@ TIER_CREDIT = {
     TIER_NONE: 0,
 }
 
-# Ordered worst to best. Adjacency in this list is what "one tier step" means.
+# Ordered worst to best for the public tier listing.
 TIER_ORDER = [TIER_NONE, TIER_MINIMAL, TIER_PARTIAL, TIER_SUBSTANTIAL, TIER_COMPLETE]
 
 # What a panel may say about one checklist item, and what it is worth.
@@ -483,14 +480,6 @@ def _credit_for_tier(tier: str) -> int:
     return int(TIER_CREDIT.get(str(tier), 0))
 
 
-def _tier_index(tier: str) -> int:
-    """Position in `TIER_ORDER`, or -1 when the tier is not recognised."""
-    try:
-        return TIER_ORDER.index(str(tier))
-    except ValueError:
-        return -1
-
-
 def _score_items(verdicts: list, items: int) -> int:
     """
     Total the points for a list of per item verdicts.
@@ -535,10 +524,10 @@ def _render_finding(
     """
     The finding of record for one adjudication.
 
-    Every input is either consensus bound (the tier, and the point total that
-    produced it) or already deterministic on chain (the side, the threshold, the
-    checklist length, whether this was a submission or a challenge). Nothing a
-    panel wrote in prose reaches this string.
+    The tier, credit and pass/fail are consensus bound. The point total is the
+    leader's advisory reading, which may differ from a validator's within the
+    agreed tier. Rendering is deterministic on the accepted result and stored
+    terms; this string never drives a later decision or settlement.
     """
     total = max(1, int(items)) * ITEM_POINTS[ITEM_PRESENT]
     verdict = "met" if passed else "did not meet"
@@ -876,7 +865,7 @@ class Pact:
     dependency: str
     max_attempts: u32
     challenge_window: u64
-    tier_tolerance_points: u32
+    tier_tolerance_points: u32  # Deprecated compatibility term; never affects consensus.
     mutual_breach_sink: Address
     status: str
     created_at: u64
@@ -939,15 +928,15 @@ class Adjudication:
     """
     One panel reading of one side's evidence.
 
-    `tier`, `earned_points` and, for a challenge, `substantiated` are the
+    `tier` and, for a challenge, `substantiated` are the
     consensus bound fields: every validator that accepted this transaction
     fetched the evidence itself, scored the same stored rubric, and reached the
     same tier.
 
-    `finding` is derived by `_render_finding` from those bound fields and on chain
-    data, so every validator renders identical bytes.
+    `finding` is rendered deterministically from the accepted result and on chain
+    data, including the leader's advisory point total. It never drives settlement.
 
-    `panel_note`, `panel_missing`, `panel_score` and `item_verdicts_json` are the
+    `earned_points`, `panel_note`, `panel_missing`, `panel_score` and `item_verdicts_json` are the
     leader's own words and numbers, recorded for human readers. They are not
     bound, two validators may differ on all of them, and nothing in this contract
     reads them back.
@@ -1159,7 +1148,7 @@ class BilateralCommitmentEnforcer(gl.Contract):
         self.default_max_attempts = u32(3)
         self.default_challenge_window = u64(48 * 3600)
         self.default_funding_window = u64(7 * 24 * 3600)
-        self.default_tier_tolerance = u32(1)
+        self.default_tier_tolerance = u32(0)
         self.total_locked_wei = u256(0)
         self.total_settled_wei = u256(0)
         self.pacts_settled = u256(0)
@@ -1682,7 +1671,6 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         checklist: list,
         url: str,
         threshold: int,
-        tolerance: int,
         grounds: str = "",
     ) -> dict:
         """
@@ -1698,19 +1686,14 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
 
           - the pass or fail side of the threshold, always, strictly. This is the
             binary verdict, and it decides whether a side keeps its whole stake.
-          - the credit tier, either identical, or adjacent when the two point
-            totals differ by no more than `tolerance`. Tier equality is the
-            default; the tolerance exists because a rubric scored 8 of 10 by one
-            panel and 7 of 10 by another is genuinely borderline work, and failing
-            consensus on every borderline pact would make the primitive unusable.
-            Within the tolerance the leader's tier is stored, which is bounded
-            leader discretion of one tier step that can never change the pass or
-            fail outcome. A steward that wants none sets the tolerance to zero.
+          - the exact credit tier, always. Adjacent failing tiers forfeit different
+            stake amounts, so even one point of cross-tier disagreement must fail.
+            No pact option or steward default can relax this requirement.
           - for a challenge, the `substantiated` boolean.
 
-        What agreement never requires: the per item verdict vector, the panel's own
-        0 to 100 reading, or any prose. All four are recorded as the leader's and
-        read back by nothing.
+        What agreement never requires: the point total within the agreed tier,
+        the per item verdict vector, the panel's own 0 to 100 reading, or any prose.
+        These are recorded as the leader's advisory reading and never drive money.
         """
         item_count = len(checklist)
         self._require(item_count > 0, "This side has no rubric to score")
@@ -1720,7 +1703,6 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         side_label = side
         commitment_text = commitment
         pass_mark = int(threshold)
-        slack = max(0, int(tolerance))
         is_challenge = bool(grounds)
 
         def leader_fn() -> dict:
@@ -1779,9 +1761,9 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
 
             leader_tier = str(leader.get("tier", ""))
             our_tier = str(mine["tier"])
-            leader_index = _tier_index(leader_tier)
-            our_index = _tier_index(our_tier)
-            if leader_index < 0 or our_index < 0:
+            # Independently derived exact tier equality binds every payout-driving
+            # credit. Point proximity and a shared failure verdict are insufficient.
+            if leader_tier not in TIER_CREDIT or leader_tier != our_tier:
                 return False
 
             # The binary verdict is the part that decides whether a side keeps its
@@ -1792,17 +1774,7 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
             if is_challenge and bool(leader.get("substantiated")) != bool(mine["substantiated"]):
                 return False
 
-            if leader_index == our_index:
-                return True
-
-            # Adjacent tiers, and only when the two readings really were a
-            # hairsbreadth apart on the same rubric.
-            if abs(leader_index - our_index) != 1:
-                return False
-            leader_points = _as_int(leader.get("earned", -1), "earned", -1, 10_000)
-            if leader_points < 0:
-                return False
-            return abs(leader_points - int(mine["earned"])) <= slack
+            return True
 
         return _unwrap(gl.vm.run_nondet_unsafe(leader_fn, validator_fn))
 
@@ -1953,7 +1925,8 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
             challenge_window         seconds a counterparty has to challenge a
                                     confirmed fulfilment, 0 to disable
             funding_window          seconds party B has to accept
-            tier_tolerance_points   0 for strict tier agreement
+            tier_tolerance_points   deprecated compatibility term (0 to 4);
+                                    exact tier agreement is always required
             mutual_breach_sink      address that receives both forfeits when both
                                     sides breach, omitted to let them cross
             checklist_a             explicit rubric for party A, omit to have the
@@ -2406,7 +2379,6 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
             checklist,
             url,
             threshold,
-            int(pact.tier_tolerance_points),
         )
 
         attempt = int(ob.attempts_used) + 1
@@ -2601,7 +2573,6 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
             checklist,
             original_url,
             threshold,
-            int(pact.tier_tolerance_points),
             grounds=text,
         )
 
@@ -3245,9 +3216,9 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         """
         One panel reading, in full.
 
-        `tier`, `earned_points` and `substantiated` are the consensus bound fields.
-        Everything prefixed `panel_` is the leader's own words or numbers, recorded
-        for human readers and read back by nothing in this contract.
+        `tier` and `substantiated` are the independently agreed fields; credit and
+        pass/fail derive from that tier. Everything prefixed `panel_`, including
+        `panel_earned_points`, is advisory and never drives settlement.
         """
         key = _collapse(pact_id)
         target = _collapse(side).upper()
@@ -3266,13 +3237,13 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
                 "consensus_bound": {
                     "tier": str(a.tier),
                     "credit": int(a.credit),
-                    "earned_points": int(a.earned_points),
                     "total_points": int(a.total_points),
                     "passed": bool(a.passed),
                     "substantiated": bool(a.substantiated),
                 },
                 "finding": str(a.finding),
                 "grounds": str(a.grounds),
+                "panel_earned_points": int(a.earned_points),
                 "panel_item_verdicts": json.loads(a.item_verdicts_json or "[]"),
                 "panel_score_advisory": int(a.panel_score),
                 "panel_note": str(a.panel_note),

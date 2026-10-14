@@ -17,12 +17,12 @@ A core differentiator of this primitive is **dependency chaining**: when party B
 | Network | GenLayer StudioNet |
 | Chain ID | 61999 |
 | RPC endpoint | `https://studio.genlayer.com/api` |
-| Contract address | `0x7975BB158bDA6838822272A2825b3d77e9E4e091` |
-| Explorer | https://explorer-studio.genlayer.com/address/0x7975BB158bDA6838822272A2825b3d77e9E4e091 |
-| Deployment transaction | `0xab65921237e05159a65c239f1c04b4769d2156d2982c88abbbf49a6037915a54` |
+| Contract address | `0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231` |
+| Explorer | https://explorer-studio.genlayer.com/address/0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231 |
+| Deployment transaction | `0xc01c37d7b573cb5a706389ef7166fd5c9b4003e5d53550cff6d15eb64fe71ce7` |
 | Deployer | `0xBC1399c55538eC034d4Da550C03c34Ae0C357f53` |
 | GenVM runner | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
-| Source SHA-256 | `41aa9a53bffe90fa6f4eb67f609b14443275249e9e7c0920c5f71fc8a38285a8` |
+| Source SHA-256 | `5da1cf7d0ada0050d5a89b9cddf967d7883aab63f862b0c2f3c41db30641c4dc` |
 
 The deployed bytecode matches `contracts/bilateral_commitment_enforcer.py` byte-for-byte. The live test suite asserts this exact match via `gen_getContractCode` on every run. Verify locally:
 
@@ -30,15 +30,15 @@ The deployed bytecode matches `contracts/bilateral_commitment_enforcer.py` byte-
 curl -sS https://studio.genlayer.com/api \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"gen_getContractCode",
-       "params":["0x7975BB158bDA6838822272A2825b3d77e9E4e091"]}' \
+       "params":["0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231"]}' \
   | python3 -c 'import base64,json,sys; sys.stdout.buffer.write(base64.b64decode(json.load(sys.stdin)["result"]))' \
   | diff - contracts/bilateral_commitment_enforcer.py && echo identical
 ```
 
 The reference consumer used by the live suite is deployed at
-[`0x0A8bf38953F50765Fab7B8f541b12D9e2e757f80`](https://explorer-studio.genlayer.com/address/0x0A8bf38953F50765Fab7B8f541b12D9e2e757f80) (transaction `0x5750d13d78db215bfb7901c7e309e452e15f9453894c21954463a22961bedc61`, SHA-256 `405bb1314ed7189da1e653e2b90f7c3eebac5c4c8605b796a82fc1036bf6b411`).
+[`0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35`](https://explorer-studio.genlayer.com/address/0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35) (transaction `0x608c364607889330e078ffa3a5086f7d298d732bde58f04a9104438a01e6ac1a`, SHA-256 `405bb1314ed7189da1e653e2b90f7c3eebac5c4c8605b796a82fc1036bf6b411`).
 
-Full deployment metadata is stored in `artifacts/deployment.json`. The live verification transcript containing all 13 transactions and consensus vote breakdowns is stored in `artifacts/live-verification.json`.
+Full deployment metadata is stored in `artifacts/deployment.json`. The live verification transcript containing all 14 transactions and consensus vote breakdowns is stored in `artifacts/live-verification.json`.
 
 ---
 
@@ -74,7 +74,7 @@ This single unified formulation cleanly handles:
 - **Mutual fulfilment**: both score 100, zero forfeits, full stakes returned.
 - **Unilateral breach**: breaching party forfeits proportionally; performing party receives the forfeit.
 - **Chained breach**: party A breaches; party B is `EXCUSED` (effective credit 100) and receives party A's forfeit.
-- **Partial performance**: delivering 80% retains 80% of stake and forfeits only 20%.
+- **Partial performance**: a failing `PARTIAL` tier retains 50% of its stake and forfeits 50%.
 
 ### 2. Tiered Partial Credit Taxonomy
 
@@ -86,7 +86,7 @@ Prose evaluations produce noisy point scores (e.g. 73 versus 68) that can fragme
 | `SUBSTANTIAL` | 80 | Primary deliverables present; minor omissions |
 | `PARTIAL` | 50 | Half or significant core deliverables satisfied |
 | `MINIMAL` | 20 | Incidental or preliminary deliverables only |
-| `NONE` | 0 | No deliverables present or evidence unreadable |
+| `NONE` | 0 | No deliverables present (unreadable evidence reverts) |
 
 Validators agree on discrete tiers rather than arbitrary floating point numbers, eliminating leader discretion over monetary payouts.
 
@@ -100,11 +100,11 @@ Each checklist item receives point marks from validators:
 - `ABSENT`: 0 points
 
 The ratio of earned points to maximum points deterministically maps to the credit tier:
-- Ratio >= 0.90 -> `COMPLETE` (100 credit)
-- Ratio >= 0.70 -> `SUBSTANTIAL` (80 credit)
+- Every point earned -> `COMPLETE` (100 credit)
+- Ratio >= 0.80 -> `SUBSTANTIAL` (80 credit)
 - Ratio >= 0.40 -> `PARTIAL` (50 credit)
-- Ratio >= 0.15 -> `MINIMAL` (20 credit)
-- Ratio < 0.15 -> `NONE` (0 credit)
+- Any positive points below 0.40 -> `MINIMAL` (20 credit)
+- Zero points -> `NONE` (0 credit)
 
 #### Consent Mechanism
 
@@ -139,7 +139,10 @@ Three non-deterministic operations execute via GenLayer Optimistic Democracy (`g
 2. **Evidence Adjudication (`submit_evidence`)**:
    - Leader fetches the evidence URL and scores each stored checklist item.
    - Validators execute their own independent HTTP fetch, score the rubric, and compute the resulting tier.
-   - Consensus requires agreement on binary pass/fail and credit tier (with configurable `tier_tolerance_points` allowing at most one adjacent tier difference on borderline scores without crossing the pass/fail boundary).
+   - Consensus requires the **exact same credit tier**, and therefore the same canonical credit and binary pass/fail. Different tiers are always rejected, including adjacent failing tiers one point apart. Both `submit_evidence` and `challenge_fulfilment` use this rule.
+   - `tier_tolerance_points` is a deprecated compatibility field, defaulting to zero. Values 0 to 4 remain accepted, stored, and included in the terms digest, but have no effect on consensus. Neither a creator nor a steward can enable cross-tier acceptance.
+   - Point totals and item verdicts may differ within the agreed tier. `get_adjudication` labels the leader's total as `panel_earned_points`; it is advisory and never drives settlement. `consensus_bound` contains the exact agreed tier, derived credit and pass/fail, fixed total possible points, and challenge decision.
+   - For example, 3/6 points yields `PARTIAL` (50 credit), while 2/6 yields `MINIMAL` (20 credit). On a failing 10 GEN stake, these forfeit 5 GEN and 8 GEN respectively. These readings cannot approve each other. Two readings in `PARTIAL`, such as 3/6 and 4/6, agree on 50 credit and the same forfeiture.
 
 3. **Challenge Adjudication (`challenge_fulfilment`)**:
    - Counterparty challenges confirmed fulfilment within `challenge_window`.
@@ -208,12 +211,12 @@ Evidence URLs are canonically normalized (lowercased scheme and host, stripped d
 
 ## Verification and Testing
 
-### Offline Test Suite (291 tests)
+### Offline Test Suite (579 tests)
 
 The offline suite tests lifecycle transitions, consensus closures, dependency chains, settlement arithmetic, replay prevention, and cross-contract gating without external network calls:
 
 ```bash
-../.testvenv312/bin/python -m pytest tests/ -v
+python3 -m pytest tests/ -v
 ```
 
 ### Documentation Verification Suite
@@ -221,7 +224,7 @@ The offline suite tests lifecycle transitions, consensus closures, dependency ch
 Ensures code snippets, hashes, deployed addresses, and style rules remain synchronized:
 
 ```bash
-../.testvenv312/bin/python -m pytest tests/test_documentation.py -v
+python3 -m pytest tests/test_documentation.py -v
 ```
 
 ### Live StudioNet End-to-End Suite (16 tests)
@@ -229,6 +232,6 @@ Ensures code snippets, hashes, deployed addresses, and style rules remain synchr
 Executes against live validators on GenLayer StudioNet with real evidence documents:
 
 ```bash
-GENLAYER_PRIVATE_KEY=0x... ENFORCER_ADDRESS=0x7975BB158bDA6838822272A2825b3d77e9E4e091 \
-  ../.testvenv312/bin/python -m pytest tests/test_live_studionet.py -v -s
+GENLAYER_PRIVATE_KEY=0x... ENFORCER_ADDRESS=0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231 \
+  python3 -m pytest tests/test_live_studionet.py -v -s
 ```

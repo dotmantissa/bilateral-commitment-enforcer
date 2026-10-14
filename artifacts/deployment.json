@@ -5,24 +5,24 @@
       "constructorArgs": [
         "Bilateral Commitment Registry"
       ],
-      "contractAddress": "0x7975BB158bDA6838822272A2825b3d77e9E4e091",
-      "deploymentTransaction": "0xab65921237e05159a65c239f1c04b4769d2156d2982c88abbbf49a6037915a54",
-      "explorer": "https://explorer-studio.genlayer.com/address/0x7975BB158bDA6838822272A2825b3d77e9E4e091",
+      "contractAddress": "0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231",
+      "deploymentTransaction": "0xc01c37d7b573cb5a706389ef7166fd5c9b4003e5d53550cff6d15eb64fe71ce7",
+      "explorer": "https://explorer-studio.genlayer.com/address/0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231",
       "methods": 30,
       "role": "the primitive",
       "source": "contracts/bilateral_commitment_enforcer.py",
-      "sourceBytes": 144713,
-      "sourceSha256": "41aa9a53bffe90fa6f4eb67f609b14443275249e9e7c0920c5f71fc8a38285a8",
+      "sourceBytes": 143638,
+      "sourceSha256": "5da1cf7d0ada0050d5a89b9cddf967d7883aab63f862b0c2f3c41db30641c4dc",
       "viewMethods": 21,
       "writeMethods": 9
     },
     "CommitmentGatedRelease": {
       "constructorArgs": [
-        "0x7975BB158bDA6838822272A2825b3d77e9E4e091"
+        "0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231"
       ],
-      "contractAddress": "0x0A8bf38953F50765Fab7B8f541b12D9e2e757f80",
-      "deploymentTransaction": "0x5750d13d78db215bfb7901c7e309e452e15f9453894c21954463a22961bedc61",
-      "explorer": "https://explorer-studio.genlayer.com/address/0x0A8bf38953F50765Fab7B8f541b12D9e2e757f80",
+      "contractAddress": "0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35",
+      "deploymentTransaction": "0x608c364607889330e078ffa3a5086f7d298d732bde58f04a9104438a01e6ac1a",
+      "explorer": "https://explorer-studio.genlayer.com/address/0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35",
       "methods": 11,
       "role": "reference consumer, proving the cross-contract gate works",
       "source": "contracts/commitment_gated_release.py",
@@ -36,7 +36,7 @@
   "deployerAddress": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
   "network": "studionet",
   "primitive": "Bilateral Commitment Enforcer",
-  "recordedAt": "2026-10-07T11:36:12Z",
+  "recordedAt": "2026-10-14T13:54:27Z",
   "rpc": "https://studio.genlayer.com/api",
   "runner": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6",
   "schemaMethods": [

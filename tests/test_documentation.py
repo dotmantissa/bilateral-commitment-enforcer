@@ -69,7 +69,7 @@ def test_the_documented_cross_contract_gate_blocks_before_fulfilment(documented)
         "max_attempts": 3,
         "challenge_window": 3600,
         "funding_window": 86400,
-        "tier_tolerance_points": 1,
+        "tier_tolerance_points": 0,
         "checklist_a": [
             "An anonymised Q3 dataset published at a public URL",
             "A schema document describing all fourteen columns",
@@ -179,7 +179,7 @@ def test_the_pinned_runner_matches_the_contract_headers():
     for path in (ENFORCER_SOURCE, RELEASE_SOURCE):
         head = path.read_text().splitlines()[:2]
         assert any(runner in line for line in head), f"{path.name} does not pin {runner}"
-        assert '"Depends"' in head[1]
+        assert any('"Depends"' in line for line in head)
 
 
 def test_every_documented_contract_method_exists():

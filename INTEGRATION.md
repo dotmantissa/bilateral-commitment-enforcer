@@ -3,7 +3,7 @@
 This guide explains how to integrate the Bilateral Commitment Enforcer into your protocol, front end, or workflow.
 
 The deployed primitive on StudioNet is
-[`0x7975BB158bDA6838822272A2825b3d77e9E4e091`](https://explorer-studio.genlayer.com/address/0x7975BB158bDA6838822272A2825b3d77e9E4e091).
+[`0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231`](https://explorer-studio.genlayer.com/address/0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231).
 It is multi-tenant and permissionless: any two addresses can create and settle pacts without protocol deployment or admin approval.
 
 ---
@@ -74,7 +74,7 @@ from genlayer_py.chains import studionet
 
 account = create_account("0xYOUR_PRIVATE_KEY")
 client = create_client(chain=studionet, account=account)
-enforcer_address = "0x7975BB158bDA6838822272A2825b3d77e9E4e091"
+enforcer_address = "0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231"
 ```
 
 ### Step 1: Propose a Bilateral Pact (Party A)
@@ -87,7 +87,7 @@ options = {
     "max_attempts": 3,
     "challenge_window": 86400,
     "funding_window": 604800,
-    "tier_tolerance_points": 1,
+    "tier_tolerance_points": 0,
     "checklist_a": [
         "Dataset release document containing row count and covered period",
         "A column schema document describing fourteen columns",
@@ -119,6 +119,14 @@ tx_hash = client.write_contract(
 )
 receipt = client.wait_for_transaction_receipt(tx_hash)
 ```
+
+Evidence submissions and challenges require consensus on the exact credit tier.
+`tier_tolerance_points` is deprecated: legacy values 0 to 4 are still stored and
+covered by `terms_digest`, but cannot relax tier agreement. A rejected result
+commits no attempt, replay marker, challenge usage, or credit change. Validators
+may disagree on point totals within one tier because settlement uses only that
+tier's canonical credit. Read `consensus_bound` for the agreed decision and
+`panel_earned_points` for the leader's advisory point total.
 
 ### Step 2: Read Terms Digest (Party B)
 

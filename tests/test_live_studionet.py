@@ -287,6 +287,7 @@ def test_registry_info_reports_expected_defaults(client_a, enforcer_address):
     assert info["registry_name"] == "Bilateral Commitment Registry"
     assert info["defaults"]["pass_threshold"] == 80
     assert info["defaults"]["max_attempts"] == 3
+    assert info["defaults"]["tier_tolerance_points"] == 0
     assert info["tiers"]["COMPLETE"] == 100
     assert info["tiers"]["SUBSTANTIAL"] == 80
     assert info["tiers"]["PARTIAL"] == 50
@@ -311,7 +312,7 @@ def test_party_a_proposes_bilateral_pact_with_chaining(client_a, client_b, enfor
         "max_attempts": 3,
         "challenge_window": 3600,
         "funding_window": 86400,
-        "tier_tolerance_points": 1,
+        "tier_tolerance_points": 0,
         "checklist_a": CHECKLIST_A,
         "checklist_b": CHECKLIST_B,
     }

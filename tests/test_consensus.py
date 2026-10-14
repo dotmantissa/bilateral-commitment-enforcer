@@ -261,13 +261,8 @@ def test_tiers_two_steps_apart_fail_even_on_the_same_side_of_the_threshold(host,
         submit(enforcer, accounts, side="A")
 
 
-def test_adjacent_tiers_one_point_apart_are_accepted_within_the_tolerance(host, enforcer, accounts):
-    """
-    The documented concession. A rubric scored five of six points by one panel and
-    four of six by another is genuinely borderline work, and failing consensus on
-    every borderline pact would make the primitive unusable. Both readings are
-    failures here, so the binary verdict still agrees exactly.
-    """
+def test_adjacent_failing_tiers_one_point_apart_are_rejected(host, enforcer, accounts):
+    """A shared failure verdict cannot authorize different forfeitures."""
     active_pact(host, enforcer, accounts, options=default_options(tier_tolerance_points=1))
     serve_evidence(host, EVIDENCE_A, BODY_A_COMPLETE)
     host.mock_llm(
@@ -280,15 +275,12 @@ def test_adjacent_tiers_one_point_apart_are_accepted_within_the_tolerance(host, 
     assert tier_of(["PRESENT", "PARTIAL", "ABSENT"]) == "PARTIAL"
     assert tier_of(["PARTIAL", "PARTIAL", "ABSENT"]) == "MINIMAL"
 
-    out = submit(enforcer, accounts, side="A")
-    # The leader's tier is what was stored, which is the bounded discretion the
-    # tolerance grants: one tier step, and only on a borderline reading.
-    assert out["tier"] == "PARTIAL"
-    assert out["rubric_points"] == "3/6"
+    with pytest.raises(ConsensusFailure):
+        submit(enforcer, accounts, side="A")
 
 
 def test_a_zero_tolerance_pact_requires_identical_tiers(host, enforcer, accounts):
-    """A steward or creator that wants no leader discretion at all sets the tolerance to zero."""
+    """Zero tolerance also requires exact tier agreement."""
     active_pact(host, enforcer, accounts, options=default_options(tier_tolerance_points=0))
     serve_evidence(host, EVIDENCE_A, BODY_A_COMPLETE)
     host.mock_llm(
@@ -298,16 +290,15 @@ def test_a_zero_tolerance_pact_requires_identical_tiers(host, enforcer, accounts
             scoring_reply(["PARTIAL", "PARTIAL", "ABSENT"]),   # 2 of 6, MINIMAL
         ],
     )
-    # The same pair the previous test accepted at tolerance 1.
+    # The same pair rejected at legacy tolerance 1.
     with pytest.raises(ConsensusFailure):
         submit(enforcer, accounts, side="A")
 
 
 def test_the_tolerance_never_lets_a_pass_and_a_fail_agree(host, enforcer, accounts):
     """
-    SUBSTANTIAL and PARTIAL are adjacent tiers one point apart, which the tolerance
-    would ordinarily admit. They sit either side of the threshold, so the binary
-    check refuses them anyway. This is the guarantee the tolerance must never break.
+    SUBSTANTIAL and PARTIAL are adjacent tiers one point apart and straddle the
+    threshold. A legacy nonzero tolerance cannot admit their disagreement.
     """
     active_pact(host, enforcer, accounts, options=default_options(tier_tolerance_points=2))
     serve_evidence(host, EVIDENCE_A, BODY_A_COMPLETE)
@@ -592,4 +583,5 @@ def test_the_finding_of_record_is_derived_not_authored(host, enforcer, accounts)
     assert record["finding"] == expected
     assert record["panel_note"] == "A rather different sentence entirely."
     assert record["consensus_bound"]["tier"] == "PARTIAL"
-    assert record["consensus_bound"]["earned_points"] == 4
+    assert record["panel_earned_points"] == 4
+    assert "earned_points" not in record["consensus_bound"]
