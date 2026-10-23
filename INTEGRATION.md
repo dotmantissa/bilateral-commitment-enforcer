@@ -3,7 +3,7 @@
 This guide explains how to integrate the Bilateral Commitment Enforcer into your protocol, front end, or workflow.
 
 The deployed primitive on StudioNet is
-[`0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231`](https://explorer-studio.genlayer.com/address/0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231).
+[`0x5aBBC395BE975144ef1DC262292529Cab0f6A12E`](https://explorer-studio.genlayer.com/address/0x5aBBC395BE975144ef1DC262292529Cab0f6A12E).
 It is multi-tenant and permissionless: any two addresses can create and settle pacts without protocol deployment or admin approval.
 
 ---
@@ -74,7 +74,7 @@ from genlayer_py.chains import studionet
 
 account = create_account("0xYOUR_PRIVATE_KEY")
 client = create_client(chain=studionet, account=account)
-enforcer_address = "0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231"
+enforcer_address = "0x5aBBC395BE975144ef1DC262292529Cab0f6A12E"
 ```
 
 ### Step 1: Propose a Bilateral Pact (Party A)

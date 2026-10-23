@@ -237,9 +237,8 @@ def test_the_digest_changes_when_any_binding_term_changes(host, enforcer, accoun
 
 def test_the_digest_covers_the_rubric_text(host, enforcer, accounts):
     """
-    A rubric party B never saw cannot bind party B. The rubric is leader authored
-    and is not compared across validators, so this coverage is the whole mechanism
-    that makes it binding.
+    Party B's consent must bind the exact deterministic rubric text in addition
+    to the validator comparison against transaction inputs.
     """
     base = create(host, enforcer, accounts, pact_id="pact-base")
     serve_admissibility(host)
@@ -319,8 +318,7 @@ def test_a_pact_cannot_be_accepted_twice(host, enforcer, accounts):
 
 def test_party_a_may_withdraw_a_proposal_and_is_refunded_in_full(host, enforcer, accounts):
     """
-    The other half of consent. Party A sees the panel authored rubric only after
-    creation, so without a way out it would be bound to a rubric it never read.
+    Party A can withdraw while its deterministic proposal awaits B's consent.
     """
     create(host, enforcer, accounts, stake_a=5 * ONE)
     out = json.loads(enforcer.withdraw_proposal("pact-1", sender=accounts["alice"]))

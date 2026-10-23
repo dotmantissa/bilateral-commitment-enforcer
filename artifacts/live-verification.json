@@ -1,6 +1,6 @@
 {
   "adjudicationA": {
-    "adjudicated_at": 1791986201,
+    "adjudicated_at": 1792768077,
     "adjudicated_by": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
     "attempt": 1,
     "consensus_bound": {
@@ -14,7 +14,7 @@
     "finding": "Party A scored 6 of 6 rubric points on the submitted evidence, which is tier COMPLETE and 100 credit. That met the pact's pass threshold of 80.",
     "grounds": "",
     "kind": "SUBMISSION",
-    "pact_id": "meridian-live-1791986124",
+    "pact_id": "meridian-live-1792767396",
     "panel_earned_points": 6,
     "panel_item_verdicts": [
       "PRESENT",
@@ -22,14 +22,14 @@
       "PRESENT"
     ],
     "panel_missing": "",
-    "panel_note": "The evidence shows a public dataset release document containing the required description, fourteen-column schema, and SHA-256 checksum.",
+    "panel_note": "The evidence fulfills all three requirements of the rubric by providing a detailed dataset description, a complete fourteen-column schema, and a SHA-256 checksum.",
     "panel_score_advisory": 100,
     "side": "A",
     "url_digest": "051a30197010d0d05bb90f99271af860e87afccc6a522bee6a63dca985dc2aa7"
   },
   "adjudicationB": {
-    "adjudicated_at": 1791986303,
-    "adjudicated_by": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+    "adjudicated_at": 1792768264,
+    "adjudicated_by": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
     "attempt": 1,
     "consensus_bound": {
       "credit": 80,
@@ -42,57 +42,105 @@
     "finding": "Party B scored 5 of 6 rubric points on the submitted evidence, which is tier SUBSTANTIAL and 80 credit. That met the pact's pass threshold of 80.",
     "grounds": "",
     "kind": "SUBMISSION",
-    "pact_id": "meridian-live-1791986124",
+    "pact_id": "meridian-live-1792767396",
     "panel_earned_points": 5,
     "panel_item_verdicts": [
       "PRESENT",
       "PRESENT",
       "PARTIAL"
     ],
-    "panel_missing": "The 202 rejected rows with surrogate IDs and reasons that were omitted from the report and placed in an external file.",
-    "panel_note": "The evidence contains the loading confirmation and default curve, but only explicitly lists 15 of the 217 rejected rows, deferring the rest to an absent file.",
-    "panel_score_advisory": 70,
+    "panel_missing": "The complete listing of all 217 rejected rows is not contained in the submitted evidence; only 15 are shown and the rest are referenced to an external file.",
+    "panel_note": "The report covers loading and the default curve fully, but the rejected rows listing is incomplete within the submitted document itself.",
+    "panel_score_advisory": 83,
     "side": "B",
     "url_digest": "67eebcf10fb229a35bb819ff800130415f2ce972d95b8f94c5f0335d3243ca1c"
   },
   "chainId": 61999,
-  "consumerAddress": "0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35",
-  "contractAddress": "0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231",
+  "consumerAddress": "0x1BeB9032941eEF5F74C293Ed713F85C162e53E66",
+  "contractAddress": "0x5aBBC395BE975144ef1DC262292529Cab0f6A12E",
   "deployedSourceMatchesRepository": true,
-  "enforcerSha256": "5da1cf7d0ada0050d5a89b9cddf967d7883aab63f862b0c2f3c41db30641c4dc",
+  "deterministicRubricVerification": {
+    "pactId": "rubric-fallback-1792769260",
+    "rubrics": {
+      "A": {
+        "authored_by_panel": false,
+        "checklist": [
+          "Publish the Q3 anonymised lending dataset release documentation at a public URL, including dataset description with row count and covered period, a column schema describing fourteen columns, and the SHA-256 checksum for the dataset file."
+        ],
+        "checklist_digest": "8aac18d834fffc838958e3f8d6907b4788183674f6e697cba53f09c95708bf17",
+        "checklist_items": 1,
+        "commitment": "Publish the Q3 anonymised lending dataset release documentation at a public URL, including dataset description with row count and covered period, a column schema describing fourteen columns, and the SHA-256 checksum for the dataset file.",
+        "note": "Every validator scores this exact list. A tier is the point ratio, not a judgment call, and the credit is a lookup on the tier.",
+        "pact_id": "rubric-fallback-1792769260",
+        "pass_threshold": 80,
+        "side": "A",
+        "tiers": {
+          "COMPLETE": 100,
+          "MINIMAL": 20,
+          "NONE": 0,
+          "PARTIAL": 50,
+          "SUBSTANTIAL": 80
+        },
+        "total_points": 2
+      },
+      "B": {
+        "authored_by_panel": false,
+        "checklist": [
+          "Publish a written risk model integration report at a public URL, including loading confirmation, the resulting default curve by vintage month, and a complete listing of all rejected rows."
+        ],
+        "checklist_digest": "6f782ede767c40f4d5f7f8811b788f220aa5a1a1dfd382cdd6488db30ca7f42d",
+        "checklist_items": 1,
+        "commitment": "Publish a written risk model integration report at a public URL, including loading confirmation, the resulting default curve by vintage month, and a complete listing of all rejected rows.",
+        "note": "Every validator scores this exact list. A tier is the point ratio, not a judgment call, and the credit is a lookup on the tier.",
+        "pact_id": "rubric-fallback-1792769260",
+        "pass_threshold": 80,
+        "side": "B",
+        "tiers": {
+          "COMPLETE": 100,
+          "MINIMAL": 20,
+          "NONE": 0,
+          "PARTIAL": 50,
+          "SUBSTANTIAL": 80
+        },
+        "total_points": 2
+      }
+    },
+    "withdrawn": true
+  },
+  "enforcerSha256": "8f463596d69c86289c4ad4bcb9e30800677839c0bc71b707bad81907a2eb1650",
   "evidence": {
     "evidenceA": "https://gist.githubusercontent.com/dotmantissa/a8af23da305a75ac6bf3db7aeed4ad02/raw/81774c7a2876506be4d4907786db80d42b1f5d54/dataset-release-q3.md",
     "evidenceB": "https://gist.githubusercontent.com/dotmantissa/a8af23da305a75ac6bf3db7aeed4ad02/raw/d553ba7205c6709c3eb22fe12f3b68b8caddb9a6/integration-report-complete.md"
   },
   "finalPact": {
-    "activated_at": 1791986170,
+    "activated_at": 1792767912,
     "challenge_window": 3600,
-    "created_at": 1791986129,
+    "created_at": 1792767716,
     "created_by": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
     "dependency": "b_after_a",
-    "funding_deadline": 1792072529,
+    "funding_deadline": 1792854116,
     "max_attempts": 3,
     "mutual_breach_sink": "0x0000000000000000000000000000000000000000",
-    "observed_at": 1791986394,
-    "pact_id": "meridian-live-1791986124",
+    "observed_at": 1792769608,
+    "pact_id": "meridian-live-1792767396",
     "party_a": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
-    "party_b": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+    "party_b": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
     "pass_threshold": 80,
     "rubric_authored_by_panel": false,
-    "settled_at": 1791986381,
+    "settled_at": 1792769251,
     "stake_a_wei": "5000000000000000",
     "stake_b_wei": "5000000000000000",
     "state_a": "FULFILLED",
     "state_b": "FULFILLED",
     "status": "SETTLED",
-    "terms_digest": "8e95762274a15522032050bcd794cfe63daa95fcb1f4ebccfc27e27b7bfd8620",
+    "terms_digest": "f18c862b5532b820b472e6319cf1ed72a41bf18b8b14c040ae0de8414cd41a18",
     "tier_tolerance_points": 0,
     "title": "Meridian Lending Q3 Risk Integration"
   },
   "network": "studionet",
-  "recordedAt": "2026-10-14T13:59:57Z",
+  "recordedAt": "2026-10-23T15:34:33Z",
   "registryInfo": {
-    "created_at": 1791986039,
+    "created_at": 1792766554,
     "defaults": {
       "challenge_window": 172800,
       "funding_window": 604800,
@@ -105,7 +153,7 @@
       "b_after_a",
       "a_after_b"
     ],
-    "pact_count": 1,
+    "pact_count": 2,
     "pacts_settled": "1",
     "registry_name": "Bilateral Commitment Registry",
     "steward": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
@@ -127,15 +175,15 @@
     "forfeit_a_wei": "0",
     "forfeit_b_wei": "0",
     "outcome": "RELEASED",
-    "pact_id": "meridian-live-1791986124",
+    "pact_id": "meridian-live-1792767396",
     "payout_a_wei": "5000000000000000",
     "payout_b_wei": "5000000000000000",
-    "resolved_by": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
-    "settled_at": 1791986381,
+    "resolved_by": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
+    "settled_at": 1792769251,
     "sink_wei": "0",
     "state_a": "FULFILLED",
     "state_b": "FULFILLED",
-    "summary": "Both parties released pact 'meridian-live-1791986124' by agreement. Each stake returned in full.",
+    "summary": "Both parties released pact 'meridian-live-1792767396' by agreement. Each stake returned in full.",
     "total_out_wei": "10000000000000000"
   },
   "transactions": [
@@ -149,18 +197,18 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x7e511b2a1bf78dd5d919ded1ad19f17240ae03a1aadef21e3d583231cc744cc2",
+      "transactionHash": "0x0f077ddeb7ec976442541231db7a53b8191bb2249f42943a95d83ecc58eac9fd",
       "votes": {
-        "0x14402D49f317CE1a2F35BAE01b1804A2A9703dCb": "agree",
-        "0x36728d2a123aB444E603EE5b2ad17d18Bb193557": "idle",
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x5310dcF075E0BD47d29B8ec6581F736C767f54D2": "agree",
-        "0xBBb165E4c9d73a1493D363280f7067Cd07891dBE": "idle"
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x3b6CAcB3128D579bc6d75b04A2cA3a416fADA7Db": "agree",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "idle",
+        "0xEB77d8E49AB68C04f36F9235EcD5a60527e8f797": "agree",
+        "0xF1380FeBb4393BDc50A3a696Fe2307Fb0Fe3242A": "disagree"
       }
     },
     {
-      "agreeCount": 5,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "agreeCount": 3,
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "revert",
       "initialValidators": null,
@@ -169,18 +217,18 @@
       "revertReason": "[EXPECTED] terms_digest does not match the pact on chain. Read terms_digest from the contract and accept only the terms you have reviewed.",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x2be08316668324a8e6607cb33261177b5c54415238add1c810209061bb9d1ccf",
+      "transactionHash": "0x7efd4ff162e4b30e2826105f75850dc8aa0e8dd91e43c6ba202ef6a073ba5ea0",
       "votes": {
-        "0x4aba638Cf0Cf5249437AaD968fC69dde46ae6BAC": "agree",
-        "0x772ffCd1dF6Cc566eC4b8d3f4F4f8eBbb6B36C84": "agree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "agree",
-        "0xcE1d6bBB36B744536153966B4DD42276f5ADd0F8": "agree"
+        "0x36464b74fBc5284C1D8F8BbF28297483f2f6d3fe": "agree",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x7256863ADdB9e67718B5CfEC5cE7165E420ad46b": "idle",
+        "0xF1380FeBb4393BDc50A3a696Fe2307Fb0Fe3242A": "agree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "idle"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "success",
       "initialValidators": null,
@@ -188,18 +236,18 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0xecb1fc72bea61d09f2d1abcfae42137d985492485b922b9c307f581ede3a653e",
+      "transactionHash": "0x44731cc095b063f032556a0a57a0892338e6738ea2898e7bd3ccb6c46141fadf",
       "votes": {
-        "0x14402D49f317CE1a2F35BAE01b1804A2A9703dCb": "idle",
-        "0x36728d2a123aB444E603EE5b2ad17d18Bb193557": "agree",
-        "0x3D83ab507785b95ca5C208bEc80CCe3D5ca98100": "agree",
-        "0x76c25AFC12c75485703cCFfd0083AA6201455B25": "agree",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "idle"
+        "0x180353Bf946fd524ABb92F53D300b35c5b81a5F9": "agree",
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x3b6CAcB3128D579bc6d75b04A2cA3a416fADA7Db": "agree",
+        "0x6897dFBE7c40944a8dC75c1601d323d272F485aF": "idle",
+        "0xEB77d8E49AB68C04f36F9235EcD5a60527e8f797": "idle"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "revert",
       "initialValidators": null,
@@ -208,13 +256,13 @@
       "revertReason": "[EXPECTED] Party B's obligation has not started. It depends on party A, whose fulfilment is not yet confirmed.",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0xabd817fb2da5bf4c9f273afa05b7e02d64621950b3d4ac12969023a24abcadbe",
+      "transactionHash": "0xb67b5f38634d8fe25e83f6f1c0b2a497cd9eeef88dd8606f0c95fddb8a87d424",
       "votes": {
-        "0x36728d2a123aB444E603EE5b2ad17d18Bb193557": "agree",
-        "0x4EDbE1FC9EAeC7b0EBA849b0C76AE73Eb0ad5C47": "idle",
-        "0x6737ca1d6BDF8b7C4f19143E2D55581Ca64eb7C3": "agree",
-        "0x772ffCd1dF6Cc566eC4b8d3f4F4f8eBbb6B36C84": "agree",
-        "0xcE1d6bBB36B744536153966B4DD42276f5ADd0F8": "idle"
+        "0x180353Bf946fd524ABb92F53D300b35c5b81a5F9": "idle",
+        "0x3adF12b6772d0aa7a44CFC909cF74faba008C5C3": "agree",
+        "0x46FE5a474aaa3e30923fe7414511CD561c354e50": "agree",
+        "0xD83D07f4d8C8119D6a735834099e96F6bfdEf02f": "agree",
+        "0xaaC1C50c3cfa12d3a14c93DA5C2089EE44015877": "idle"
       }
     },
     {
@@ -227,17 +275,17 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0xc4dcede5b16a4d3ff4fc46435ed4974241d4f47ac254402340c3478283d0d1fe",
+      "transactionHash": "0xfbab1f84e9c7c1dc8a74d53d9ff17d22a8567a5d348c4fb60616a675713267df",
       "votes": {
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x4EDbE1FC9EAeC7b0EBA849b0C76AE73Eb0ad5C47": "idle",
-        "0x5310dcF075E0BD47d29B8ec6581F736C767f54D2": "idle",
-        "0x90402341F0B0e97b23023c0a87de957FB7148E0F": "agree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree"
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "idle",
+        "0xbA3882e89727dBEc10Ca6D6C949ba80e2cc54862": "agree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "idle"
       }
     },
     {
-      "agreeCount": 4,
+      "agreeCount": 5,
       "caller": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "revert",
@@ -247,13 +295,13 @@
       "revertReason": "[EXPECTED] Party A has already been confirmed as fulfilled",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x0833c98775097a29fd80927938c88e7ff59b37ad7b46465664e28bdbbe9aca8d",
+      "transactionHash": "0xb98e6a6d6da187e27e430b6b4b126842566a14d9f5f26d624f0377c52659bc6d",
       "votes": {
-        "0x03D58A4DeF6fDFc032A56374785a5F571D07Bc11": "agree",
-        "0x4404Fb70d490c935758146f42A73DC850FF95C71": "agree",
-        "0x4aba638Cf0Cf5249437AaD968fC69dde46ae6BAC": "agree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "idle"
+        "0x2249f12b3999917baa219CC5F91A3210950450C3": "agree",
+        "0x2a83d3390Bac4fE7C215F34adc33c92e4fB24315": "agree",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "agree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "agree"
       }
     },
     {
@@ -266,18 +314,18 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0xa206cf148baaada8754c88d47f5be88ed01c58967440723894e63fc74eb3d8cc",
+      "transactionHash": "0xd7032494c160b089624b637928f22be2735cbec10f3bb978374e74e23273f934",
       "votes": {
-        "0x14402D49f317CE1a2F35BAE01b1804A2A9703dCb": "agree",
-        "0x3D83ab507785b95ca5C208bEc80CCe3D5ca98100": "agree",
-        "0x4404Fb70d490c935758146f42A73DC850FF95C71": "agree",
-        "0xDB1c35c1f05d885999b8f13e5735307BcC16Be88": "idle",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "idle"
+        "0x2a83d3390Bac4fE7C215F34adc33c92e4fB24315": "idle",
+        "0x3adF12b6772d0aa7a44CFC909cF74faba008C5C3": "agree",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x7256863ADdB9e67718B5CfEC5cE7165E420ad46b": "idle",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "agree"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "success",
       "initialValidators": null,
@@ -285,13 +333,13 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x22cfb4e08a664960f0149b2296c9d627af29d955b745f7231fa7699f1598518f",
+      "transactionHash": "0xa4067536e4f987806c2cae415c81035169ac35ab7a9caffb8bb8ed0ba3b41be8",
       "votes": {
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x5310dcF075E0BD47d29B8ec6581F736C767f54D2": "agree",
-        "0x772ffCd1dF6Cc566eC4b8d3f4F4f8eBbb6B36C84": "idle",
-        "0xBBb165E4c9d73a1493D363280f7067Cd07891dBE": "idle",
-        "0xec2Fb79cd12255Eb34886CEd7332f27B98DEe658": "agree"
+        "0x3adF12b6772d0aa7a44CFC909cF74faba008C5C3": "agree",
+        "0x6897dFBE7c40944a8dC75c1601d323d272F485aF": "agree",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "agree",
+        "0xDd12C0423F85e9Ca5015a8F2E56fD92F89181Efa": "idle",
+        "0xbA3882e89727dBEc10Ca6D6C949ba80e2cc54862": "idle"
       }
     },
     {
@@ -304,38 +352,38 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x01a99a965d4e95d98019ff6416b96291dbbe51d08cb625d98b48d6555742e484",
+      "transactionHash": "0x21131d63f68a2e60e082c8208e8c28c4e27dccab03d018d2e29d1a758b226ea2",
       "votes": {
-        "0x3D83ab507785b95ca5C208bEc80CCe3D5ca98100": "idle",
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x5310dcF075E0BD47d29B8ec6581F736C767f54D2": "idle",
-        "0x90402341F0B0e97b23023c0a87de957FB7148E0F": "agree",
-        "0xBBb165E4c9d73a1493D363280f7067Cd07891dBE": "agree"
+        "0x140b18Bc11585CC705D7114d19B11E77d2b234FA": "agree",
+        "0x2249f12b3999917baa219CC5F91A3210950450C3": "idle",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x3b6CAcB3128D579bc6d75b04A2cA3a416fADA7Db": "idle",
+        "0xD83D07f4d8C8119D6a735834099e96F6bfdEf02f": "agree"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "revert",
       "initialValidators": null,
       "operation": "claim",
       "outcome": "revert",
-      "revertReason": "[EXPECTED] The gate on 'key-q3-b-1791986277' is closed: party B is not confirmed as fulfilled",
+      "revertReason": "[EXPECTED] The gate on 'key-q3-b-1792768233' is closed: party B is not confirmed as fulfilled",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x10e32b2c05ab1c78ab210138710b46a5efd1d9588edd750dd0293f661da63159",
+      "transactionHash": "0x6ce6c6d515b5df99abd84039f37d32f7d2ecf23c5d381f3d0571eafd0d48bb95",
       "votes": {
-        "0x4404Fb70d490c935758146f42A73DC850FF95C71": "agree",
-        "0x6737ca1d6BDF8b7C4f19143E2D55581Ca64eb7C3": "agree",
-        "0x772ffCd1dF6Cc566eC4b8d3f4F4f8eBbb6B36C84": "idle",
-        "0x90402341F0B0e97b23023c0a87de957FB7148E0F": "agree",
-        "0xE6BD8050758CB15fC88387223E31Ae2708B119dC": "idle"
+        "0x140b18Bc11585CC705D7114d19B11E77d2b234FA": "agree",
+        "0x36464b74fBc5284C1D8F8BbF28297483f2f6d3fe": "agree",
+        "0x3b6CAcB3128D579bc6d75b04A2cA3a416fADA7Db": "idle",
+        "0xDd12C0423F85e9Ca5015a8F2E56fD92F89181Efa": "agree",
+        "0xF1380FeBb4393BDc50A3a696Fe2307Fb0Fe3242A": "idle"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "success",
       "initialValidators": null,
@@ -343,17 +391,17 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x9b49aa6f31e1cb605a3d4d9cc9ad9bf8fb61501c9e17a01c6a2aa60fdc12e912",
+      "transactionHash": "0xa8c3cecbd8ada621692032230c2cfbb61ab9d7acc152435a476c78092799b77e",
       "votes": {
-        "0x36728d2a123aB444E603EE5b2ad17d18Bb193557": "disagree",
-        "0x4404Fb70d490c935758146f42A73DC850FF95C71": "agree",
-        "0x4EDbE1FC9EAeC7b0EBA849b0C76AE73Eb0ad5C47": "disagree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "agree"
+        "0x36464b74fBc5284C1D8F8BbF28297483f2f6d3fe": "idle",
+        "0x7C406f54cA56f450f99d6F72e633d8e5BF77E953": "idle",
+        "0xEB77d8E49AB68C04f36F9235EcD5a60527e8f797": "agree",
+        "0xF1380FeBb4393BDc50A3a696Fe2307Fb0Fe3242A": "agree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "agree"
       }
     },
     {
-      "agreeCount": 4,
+      "agreeCount": 3,
       "caller": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "success",
@@ -362,13 +410,13 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x4c91e36ce7f2d3082fa6d51a887e407e9a9fceb7a567e43441311bb707bf105c",
+      "transactionHash": "0xbbe99b0a42d0a4e75e4321ccafbf3aa9d6f89f1af2d598c814f9c05ff316fd71",
       "votes": {
-        "0x03D58A4DeF6fDFc032A56374785a5F571D07Bc11": "agree",
-        "0x3D83ab507785b95ca5C208bEc80CCe3D5ca98100": "idle",
-        "0x76c25AFC12c75485703cCFfd0083AA6201455B25": "agree",
-        "0xE6BD8050758CB15fC88387223E31Ae2708B119dC": "agree",
-        "0xcE1d6bBB36B744536153966B4DD42276f5ADd0F8": "agree"
+        "0x180353Bf946fd524ABb92F53D300b35c5b81a5F9": "idle",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "idle",
+        "0x7256863ADdB9e67718B5CfEC5cE7165E420ad46b": "agree",
+        "0xDd12C0423F85e9Ca5015a8F2E56fD92F89181Efa": "agree",
+        "0xF1380FeBb4393BDc50A3a696Fe2307Fb0Fe3242A": "agree"
       }
     },
     {
@@ -381,18 +429,18 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0x62ac4a143634389968adb957b452976c0a2d21b92655a8b64455e18d27d1036c",
+      "transactionHash": "0xb9be898b241e358660f5189ed32823dbc21fa336a15cdd26374a3340db46c9fd",
       "votes": {
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x90402341F0B0e97b23023c0a87de957FB7148E0F": "agree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree",
-        "0xE6BD8050758CB15fC88387223E31Ae2708B119dC": "agree",
-        "0xacc2459F341D7a887bcA8FAA62F1EC9378d4Bc67": "agree"
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x36464b74fBc5284C1D8F8BbF28297483f2f6d3fe": "agree",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x3b6CAcB3128D579bc6d75b04A2cA3a416fADA7Db": "agree",
+        "0xaaC1C50c3cfa12d3a14c93DA5C2089EE44015877": "agree"
       }
     },
     {
       "agreeCount": 3,
-      "caller": "0x34C65c53053f74ed5dA180FF56d24d182dC9f63d",
+      "caller": "0xc00d747c0aED2457fe735A1E690F259991668DC4",
       "consensusResult": "MAJORITY_AGREE",
       "expected": "success",
       "initialValidators": null,
@@ -400,13 +448,51 @@
       "outcome": "success",
       "rotations": null,
       "status": "ACCEPTED",
-      "transactionHash": "0xd2fd3566d951442d2b0b20b839bc80868497c15678ed0689082a0c37b813b47c",
+      "transactionHash": "0xe83b697dc2cb4223ee7512113a1739ddf9401f5f4c873ab7c67565497bd2512b",
       "votes": {
-        "0x3D83ab507785b95ca5C208bEc80CCe3D5ca98100": "idle",
-        "0x3E5ee2507cc167C9925Bf10c67D7986581112024": "agree",
-        "0x4404Fb70d490c935758146f42A73DC850FF95C71": "agree",
-        "0x9ea87b28DcA2F79fe108CF06a4c13B4c876AC23d": "agree",
-        "0xcE1d6bBB36B744536153966B4DD42276f5ADd0F8": "idle"
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x36464b74fBc5284C1D8F8BbF28297483f2f6d3fe": "agree",
+        "0x6897dFBE7c40944a8dC75c1601d323d272F485aF": "idle",
+        "0xbA3882e89727dBEc10Ca6D6C949ba80e2cc54862": "idle",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "agree"
+      }
+    },
+    {
+      "agreeCount": 3,
+      "caller": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
+      "consensusResult": "MAJORITY_AGREE",
+      "expected": "success",
+      "initialValidators": null,
+      "operation": "create_pact",
+      "outcome": "success",
+      "rotations": null,
+      "status": "ACCEPTED",
+      "transactionHash": "0xf4c0ae6b9863e6ca0c7a72c2508336c06f3fe42bccdcc3813c317762359a7826",
+      "votes": {
+        "0x2a83d3390Bac4fE7C215F34adc33c92e4fB24315": "idle",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0x46FE5a474aaa3e30923fe7414511CD561c354e50": "agree",
+        "0xD83D07f4d8C8119D6a735834099e96F6bfdEf02f": "disagree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "agree"
+      }
+    },
+    {
+      "agreeCount": 3,
+      "caller": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
+      "consensusResult": "MAJORITY_AGREE",
+      "expected": "success",
+      "initialValidators": null,
+      "operation": "withdraw_proposal",
+      "outcome": "success",
+      "rotations": null,
+      "status": "ACCEPTED",
+      "transactionHash": "0x1e3a1f72e547d061430b44404f9a9aacb996f76d9e48727db45758cdd7a754c0",
+      "votes": {
+        "0x180353Bf946fd524ABb92F53D300b35c5b81a5F9": "idle",
+        "0x1dA73F703217363Bce00637D089dF19204D6a6D6": "agree",
+        "0x3adF12b6772d0aa7a44CFC909cF74faba008C5C3": "idle",
+        "0x3b00cbB7d5d1c6D75C89BC376600813Ac12d5C96": "agree",
+        "0xcBd21Be9C907e6C0d69ce1a3B4b108F13C86C14D": "agree"
       }
     }
   ]

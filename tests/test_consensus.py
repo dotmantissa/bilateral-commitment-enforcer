@@ -20,7 +20,7 @@ from genvm_host import ConsensusFailure
 
 
 # ---------------------------------------------------------------------------
-# Operation 1: admissibility and rubric extraction
+# Operation 1: admissibility and deterministic rubric
 # ---------------------------------------------------------------------------
 
 def test_the_validator_really_runs_and_really_agrees(host, enforcer, accounts):
@@ -70,12 +70,8 @@ def test_a_validator_that_disagrees_on_the_defect_class_fails_the_block(host, en
         create(host, enforcer, accounts, serve=False)
 
 
-def test_a_validator_that_counts_a_different_number_of_deliverables_fails_the_block(host, enforcer, accounts):
-    """
-    Item count is bound even though item text is not. A different count means the
-    two panels read the promise as asking for a different number of things, which is
-    a real disagreement about what was promised.
-    """
+def test_different_model_deliverable_counts_do_not_change_the_fixed_rubric(host, enforcer, accounts):
+    """Model deliverables never choose the scoring denominator or requirements."""
     host.mock_llm(
         ADMISSIBILITY_PATTERN,
         [
@@ -83,20 +79,14 @@ def test_a_validator_that_counts_a_different_number_of_deliverables_fails_the_bl
             admissibility_reply(a_items=CHECKLIST_A[:2]),
         ],
     )
-    with pytest.raises(ConsensusFailure):
-        create(host, enforcer, accounts, serve=False, options=default_options(checklist_a=None, checklist_b=None))
+    created = create(host, enforcer, accounts, serve=False,
+                     options=default_options(checklist_a=None, checklist_b=None))
+    assert created["checklist_a"] == [COMMITMENT_A]
+    assert created["checklist_b"] == [COMMITMENT_B]
 
 
-def test_differently_worded_rubrics_with_the_same_count_still_reach_consensus(host, enforcer, accounts):
-    """
-    The deliberate design decision, stated as a test.
-
-    Two honest panels enumerating one promise write "ship the dataset" and "provide
-    the data file". Those are one requirement in two wordings, so comparing the text
-    would mean no majority ever forms. The count agrees, consensus holds, and the
-    rubric is made binding by consent instead: it is covered by the terms digest
-    party B must pass.
-    """
+def test_model_paraphrases_do_not_change_the_original_scoring_requirements(host, enforcer, accounts):
+    """Independent admissibility readings can agree without authoring a rubric."""
     paraphrased = [
         "Provide the de-identified third quarter loan data file in CSV form on the open web",
         "Supply documentation of each field in that file",
@@ -114,8 +104,9 @@ def test_differently_worded_rubrics_with_the_same_count_still_reach_consensus(ho
         options=default_options(checklist_a=None, checklist_b=None),
     )
     assert created["status"] == "PROPOSED"
-    # The leader's wording is what was stored, and the digest covers it.
-    assert created["checklist_a"] == CHECKLIST_A
+    # The complete original promise, not either model's wording, is stored.
+    assert created["checklist_a"] == [COMMITMENT_A]
+    assert created["rubric_authored_by_panel"] is False
     assert enforcer.terms_digest("pact-1") == created["terms_digest"]
 
 

@@ -62,32 +62,20 @@ Three nondeterministic operations, each with a purpose built leader and
 validator pair through `gl.vm.run_nondet_unsafe`. No operation trusts the
 leader's answer; every validator redoes the work and compares outcomes.
 
-1. Admissibility and rubric extraction (`create_pact`)
+1. Admissibility and deterministic rubric (`create_pact`)
 
-   Leader: reads both commitments and decides whether each is specific enough to
-   be adjudicated against public evidence at all. For each admissible
-   commitment it also breaks the promise into its discrete deliverables, which
-   becomes the checklist every later adjudication scores against.
+   Each rubric is fixed from transaction inputs before any model call. A creator
+   may supply an explicit ordered checklist. Otherwise the complete original
+   commitment is the single checklist item, without rewriting, splitting or
+   truncation. Partial performance of that item is scored PARTIAL. Supply a
+   granular checklist to use the full range of partial-credit tiers.
 
-   Validator: reads the same two commitments and decides the same questions
-   independently.
-
-   Agreement requires, for each side, the admissibility boolean, the defect
-   class when inadmissible, and the number of checklist items. All three are
-   numbers or fixed enum values.
-
-   The checklist *text* is deliberately not compared. Two honest panels asked to
-   enumerate the deliverables of one promise write "ship the dataset" and
-   "provide the data file", which are the same requirement in different words,
-   and no majority ever forms on prose. What makes the rubric binding is consent
-   rather than validator agreement, which the pact lifecycle enforces:
-   `create_pact` leaves the pact PROPOSED with the rubric visible on chain,
-   `accept_pact` makes party B pass the exact `terms_digest` that covers the
-   rubric text, and `withdraw_proposal` lets party A walk away if it dislikes
-   what the panel wrote. Neither side has a single wei at risk until both have
-   consented to the exact text they will be judged by. A creator that does not
-   want a panel authoring its rubric passes the checklists in explicitly, and
-   the panel then rules on admissibility only.
+   Leader and validator independently assess whether each commitment is
+   adjudicable. Agreement requires the admissibility boolean, the defect class
+   and exact ordered rubric text. Model-generated deliverables are never used.
+   Deterministic code checks the returned rubric against the transaction-derived
+   list again before storing it. Both rubrics are included in the terms digest
+   using exact JSON bytes, preserving all semantically significant characters.
 
 2. Evidence adjudication (`submit_evidence`)
 
@@ -223,8 +211,8 @@ digests, and the human readable finding that `_render_finding` builds from
 consensus bound fields.
 
 Nondeterministic, and therefore reached only through an equivalence principle:
-fetching an evidence URL, deciding whether a commitment is adjudicable, breaking
-a commitment into deliverables, scoring those deliverables against evidence, and
+fetching an evidence URL, deciding whether a commitment is adjudicable,
+scoring the deterministic rubric against evidence, and
 ruling on challenge grounds.
 
 No prose a panel wrote is ever consensus bound, and no prose a panel wrote ever
@@ -422,20 +410,13 @@ def _normalize_url(url: typing.Any) -> str:
     return combined
 
 
-def _clean_item(text: typing.Any) -> str:
-    """One checklist item, collapsed and length bounded."""
-    return _collapse(text)[:MAX_CHECKLIST_ITEM]
-
-
 def _checklist_digest(items: list) -> str:
-    """
-    Digest over a checklist's folded items, order preserving.
+    """Bind exact ordered rubric text, including case, operators and Unicode.
 
-    Order is preserved rather than sorted because item scores are reported
-    positionally, so a reordered checklist is a different rubric even when it
-    holds the same requirements.
+    Canonical JSON also escapes control characters so item boundaries cannot be
+    confused with the digest's separator. No lossy semantic normalization is used.
     """
-    return _digest("checklist", str(len(items)), *[_fold(item) for item in items])
+    return _digest("checklist-v2", json.dumps(items, ensure_ascii=False, separators=(",", ":")))
 
 
 # ---------------------------------------------------------------------------
@@ -690,37 +671,6 @@ def _parse_item_verdicts(raw: typing.Any, items: int) -> list:
     while len(verdicts) < int(items):
         verdicts.append(ITEM_ABSENT)
     return verdicts
-
-
-def _parse_checklist(raw: typing.Any) -> list:
-    """
-    Extract an authored checklist from a model reply.
-
-    Accepts a list of strings and a list of objects carrying a text field. Blank
-    entries are dropped and duplicates are removed on the folded key, because two
-    identically worded deliverables would otherwise double the weight of one
-    requirement.
-    """
-    if isinstance(raw, dict):
-        raw = _pick(raw, "deliverables", "checklist", "items", "requirements") or []
-    if not isinstance(raw, list):
-        raise gl.vm.UserError(f"{ERROR_LLM} checklist is not a list: {type(raw).__name__}")
-    items: list = []
-    seen: set = set()
-    for entry in raw:
-        if isinstance(entry, dict):
-            entry = _pick(entry, "deliverable", "text", "item", "requirement", "description")
-        cleaned = _clean_item(entry)
-        if not cleaned:
-            continue
-        key = _fold(cleaned)
-        if not key or key in seen:
-            continue
-        seen.add(key)
-        items.append(cleaned)
-        if len(items) >= MAX_CHECKLIST_ITEMS:
-            break
-    return items
 
 
 # ---------------------------------------------------------------------------
@@ -1073,6 +1023,9 @@ Decision rules, applied in this order:
  mark it ABSENT because the rest is poor. Each item stands alone.
   5. Quality beyond what the rubric asks for earns nothing. The rubric is the
  whole question.
+  6. An item may contain several requirements. Mark it PRESENT only when all of
+ them are fully shown. Real performance with any missing requirement is PARTIAL,
+ never PRESENT. Score the item as given; do not rewrite or subdivide it.
 
 Return exactly {len(checklist)} verdicts, in the rubric's order.
 
@@ -1474,39 +1427,10 @@ class BilateralCommitmentEnforcer(gl.Contract):
 
     # -- nondeterministic operation 1: admissibility and rubric ------------
 
-    def _adjudicability_prompt(self, commitment_a: str, commitment_b: str, authored: bool) -> str:
-        """
-        The admissibility question put to the panel.
-
-        Two things are asked. Whether each commitment can be adjudicated against
-        public evidence at all, and, when the creator did not supply its own
-        rubric, what the commitment's discrete deliverables are.
-
-        The instructions are written as decision rules rather than as a request
-        for an opinion, because what has to agree across validators is a boolean
-        and a count, and panels agree on those only when the question has one
-        reading. The defect taxonomy is enumerated in full and the panel is told
-        to pick from it, since a free text reason could never be compared.
-        """
-        rubric_clause = ""
-        if authored:
-            rubric_clause = f"""
-For each commitment that is ADJUDICABLE, break it into its discrete
-deliverables. A deliverable is one thing a reader could look for in the evidence
-and say present or absent. Rules for the list:
-
-  - Between {MIN_CHECKLIST_ITEMS} and {MAX_CHECKLIST_ITEMS} entries.
-  - Split on substance, never on grammar. "Publish a guide with runnable
-    examples" is two deliverables, the guide and the examples. "Publish a clear,
-    well organised guide" is one, because clear and well organised are not
-    separately checkable things.
-  - Each entry states what must exist, not how well it must be done.
-  - Do not invent requirements the commitment does not state.
-  - Do not include the deadline as a deliverable. Timing is enforced on chain.
-"""
-
+    def _adjudicability_prompt(self, commitment_a: str, commitment_b: str) -> str:
+        """Assess source commitments; the model does not author any requirements."""
         return f"""You are one member of an independent panel reviewing a two party
-commercial pact before either party stakes any funds. You are not judging whether
+commercial pact before it becomes active. You are not judging whether
 anyone performed. Nothing has been delivered yet. You are judging only whether
 each promise is the kind of promise that could later be checked against public
 evidence.
@@ -1543,15 +1467,12 @@ Treat these as INADMISSIBLE: "use best efforts", "act in good faith",
 "deliver to my satisfaction", "be reasonable about timing", "work hard on it".
 Treat these as ADJUDICABLE: "publish X at a public URL", "deploy contract Y to
 network Z", "merge pull request N", "release version V with changelog".
-{rubric_clause}
+Do not generate a rubric or rewrite either commitment. The scoring requirements
+are fixed deterministically from transaction inputs outside this model call.
 Reply with JSON exactly in this shape and nothing else:
 
-{{"a": {{"adjudicable": true, "defect": "none", "reason": "<one sentence>",
-        "deliverables": ["<deliverable>", "..."]}},
- "b": {{"adjudicable": true, "defect": "none", "reason": "<one sentence>",
-        "deliverables": ["<deliverable>", "..."]}}}}
-
-Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
+{{"a": {{"adjudicable": true, "defect": "none", "reason": "<one sentence>"}},
+ "b": {{"adjudicable": true, "defect": "none", "reason": "<one sentence>"}}}}"""
 
     def _assess_commitments(
         self,
@@ -1560,33 +1481,15 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         supplied_a: list,
         supplied_b: list,
     ) -> dict:
+        """Independently assess admissibility and bind the exact fixed rubric.
+
+        Both lists come from deterministic transaction inputs, never a model's
+        deliverables. Validators reproduce them exactly; advisory reasons may vary.
         """
-        Run the admissibility and rubric operation under consensus.
-
-        What agreement requires, per side: the `adjudicable` boolean, the
-        normalized `defect` class, and the number of checklist items. Numbers and
-        fixed enum values, all three.
-
-        What agreement deliberately does not require: the checklist text. Two
-        honest panels enumerating the deliverables of one promise write "ship the
-        dataset" and "provide the data file". Those are one requirement in two
-        wordings, and no majority ever forms on prose. The rubric becomes binding
-        through consent instead: it is stored while the pact is still PROPOSED, it
-        is covered by the `terms_digest` that party B must pass to accept, and
-        party A can withdraw if it dislikes what the panel wrote. Neither side has
-        anything at risk until both have consented to the exact text.
-
-        When the creator supplied its own checklists the panel authors nothing and
-        rules on admissibility only, which removes the model from the rubric
-        entirely for integrators who want that.
-        """
-        authored = not supplied_a or not supplied_b
-        prompt = self._adjudicability_prompt(commitment_a, commitment_b, authored)
-        # Plain values only. These closures are cloudpickled exactly as they are
-        # on chain, so capturing anything that reaches storage would fail here the
-        # same way it fails on a validator.
-        fixed_a = [_clean_item(item) for item in supplied_a]
-        fixed_b = [_clean_item(item) for item in supplied_b]
+        prompt = self._adjudicability_prompt(commitment_a, commitment_b)
+        # Capture plain values only; storage must never enter nondet closures.
+        fixed_a = list(supplied_a)
+        fixed_b = list(supplied_b)
 
         def leader_fn() -> dict:
             raw = gl.nondet.exec_prompt(prompt, response_format="json")
@@ -1613,21 +1516,13 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
                 if not adjudicable and defect == DEFECT_NONE:
                     defect = DEFECT_UNSPECIFIC
 
-                items = list(supplied)
-                if adjudicable and not items:
-                    items = _parse_checklist(_pick(block, "deliverables", "checklist", "items"))
-                    if not items:
-                        raise gl.vm.UserError(
-                            f"{ERROR_LLM} side {side} was called adjudicable with no deliverables"
-                        )
-                if not adjudicable:
-                    items = []
+                items = list(supplied) if adjudicable else []
 
                 out[side] = {
                     "adjudicable": adjudicable,
                     "defect": defect,
                     "reason": _advisory(_pick(block, "reason", "rationale", "explanation")),
-                    "items": items[:MAX_CHECKLIST_ITEMS],
+                    "items": items,
                 }
             return out
 
@@ -1653,10 +1548,9 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
                 # so two panels refusing for unrelated reasons are not agreeing.
                 if str(theirs.get("defect", "")) != str(ours.get("defect", "")):
                     return False
-                # Item count, not item text. A count that differs means the two
-                # panels read the promise as asking for a different number of
-                # things, which is a real disagreement about what was promised.
-                if len(theirs.get("items") or []) != len(ours.get("items") or []):
+                # Exact ordered transaction-derived requirements, not a count or
+                # a folded digest. Added, omitted or substituted text is rejected.
+                if theirs.get("items") != ours["items"]:
                     return False
             return True
 
@@ -1826,12 +1720,10 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
 
     def _supplied_checklist(self, options: dict, key: str) -> list:
         """
-        A creator supplied rubric, validated.
+        A creator supplied rubric, validated without rewriting or truncation.
 
-        Supplying one removes the model from rubric authoring entirely, which some
-        integrators will want. The bounds are the same ones a panel authored list
-        has to satisfy, so a supplied rubric cannot be used to smuggle in a
-        hundred items and make every later adjudication exceed the compute limit.
+        Empty or omitted lists select the full-commitment fallback. Explicit lists
+        stay bounded so all later evidence and challenge prompts fit the budget.
         """
         raw = options.get(key)
         if raw is None:
@@ -1840,7 +1732,10 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         items: list = []
         seen: set = set()
         for entry in raw:
-            cleaned = _clean_item(entry)
+            self._require(isinstance(entry, str), f"Option '{key}' must be a list of strings")
+            cleaned = _collapse(entry)
+            self._require(len(cleaned) <= MAX_CHECKLIST_ITEM,
+                          f"Option '{key}' entry exceeds {MAX_CHECKLIST_ITEM} characters")
             self._require(bool(cleaned), f"Option '{key}' contains an empty entry")
             folded = _fold(cleaned)
             self._require(folded not in seen, f"Option '{key}' repeats '{cleaned}'")
@@ -1929,8 +1824,8 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
                                     exact tier agreement is always required
             mutual_breach_sink      address that receives both forfeits when both
                                     sides breach, omitted to let them cross
-            checklist_a             explicit rubric for party A, omit to have the
-                                    panel author it
+            checklist_a             explicit rubric for party A; omit to score the
+                                    full original commitment as one item
             checklist_b             the same for party B
 
         Returns the admissibility verdict, the stored rubrics and the
@@ -2003,8 +1898,12 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         supplied_a = self._supplied_checklist(options, "checklist_a")
         supplied_b = self._supplied_checklist(options, "checklist_b")
 
-        # Consensus: is each promise adjudicable, and what are its deliverables.
-        verdict = self._assess_commitments(text_a, text_b, supplied_a, supplied_b)
+        # The consequential rubric is built before consensus from transaction
+        # inputs alone. Full commitments are never passed through an item-length
+        # truncation: that could silently discard obligations from the tail.
+        items_a = list(supplied_a) if supplied_a else [text_a]
+        items_b = list(supplied_b) if supplied_b else [text_b]
+        verdict = self._assess_commitments(text_a, text_b, items_a, items_b)
         side_a = verdict.get(SIDE_A) or {}
         side_b = verdict.get(SIDE_B) or {}
 
@@ -2021,10 +1920,10 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
                     f"concrete deliverable that a reader could check at a public URL.",
                 )
 
-        items_a = [_clean_item(item) for item in (side_a.get("items") or [])]
-        items_b = [_clean_item(item) for item in (side_b.get("items") or [])]
-        self._require(len(items_a) >= MIN_CHECKLIST_ITEMS, "Party A's commitment produced no rubric")
-        self._require(len(items_b) >= MIN_CHECKLIST_ITEMS, "Party B's commitment produced no rubric")
+        # A second deterministic guard prevents any nondet payload from choosing
+        # the stored requirements, even if an invalid leader result is returned.
+        self._require(side_a.get("items") == items_a, "Party A's rubric differs from transaction inputs")
+        self._require(side_b.get("items") == items_b, "Party B's rubric differs from transaction inputs")
 
         now = self._now()
         pact = Pact(
@@ -2047,7 +1946,7 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
             activated_at=u64(0),
             settled_at=u64(0),
             terms_digest="",
-            rubric_authored=bool(not supplied_a or not supplied_b),
+            rubric_authored=False,
         )
 
         ob_a = self._new_obligation(key, SIDE_A, address_a, text_a, stake_a, int(window_a_seconds), items_a, dependency)
@@ -2228,9 +2127,8 @@ Use an empty deliverables list for a commitment you marked INADMISSIBLE."""
         """
         Withdraw a pact party B has not accepted, returning party A's stake.
 
-        This is the other half of consent. Party A sees the panel authored rubric
-        only after `create_pact` has run, so without a way out, A would be bound to
-        a rubric it had no chance to read. Withdrawal is open to party A for as long
+        Party A can withdraw its proposal while waiting for party B's consent.
+        Withdrawal is open to party A for as long
         as the pact is PROPOSED, and to anyone once the funding window has closed,
         so a stake cannot be stranded by an unresponsive creator.
         """

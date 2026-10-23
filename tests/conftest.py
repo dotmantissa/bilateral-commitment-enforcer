@@ -261,7 +261,7 @@ def terms_digest_of(
         return hasher.hexdigest()
 
     def checklist_digest(items: list) -> str:
-        return digest("checklist", str(len(items)), *[fold(i) for i in items])
+        return digest("checklist-v2", json.dumps(items, ensure_ascii=False, separators=(",", ":")))
 
     return digest(
         "pact-terms-v1",
@@ -365,8 +365,8 @@ def default_options(**overrides) -> dict:
     The options bag used by most tests.
 
     Checklists are supplied explicitly by default, so that a test about settlement
-    is not also a test about whether a panel authored three items or four. The
-    tests that care about panel authoring leave them out on purpose.
+    is not also a test about the whole-commitment fallback. The tests that exercise
+    that deterministic fallback leave them out on purpose.
     """
     options = {
         "checklist_a": CHECKLIST_A,

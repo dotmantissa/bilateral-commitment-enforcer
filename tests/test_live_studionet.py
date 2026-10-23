@@ -301,7 +301,7 @@ def test_registry_info_reports_expected_defaults(client_a, enforcer_address):
 def test_party_a_proposes_bilateral_pact_with_chaining(client_a, client_b, enforcer_address):
     """
     Party A proposes a pact with dependency mode 'b_after_a'.
-    Validators assess admissibility and author or store the rubrics.
+    Validators assess admissibility and verify the deterministic rubrics.
     Party A's stake is locked and the pact enters PROPOSED.
     """
     pact_id = f"meridian-live-{int(time.time())}"
@@ -601,6 +601,26 @@ def test_both_parties_agree_release_and_settle_at_par(client_a, client_b, enforc
 # 7. Verification artifact creation
 # ---------------------------------------------------------------------------
 
+def test_omitted_rubrics_preserve_full_original_commitments(client_a, client_b, enforcer_address):
+    """Exercise the default requirements path with independent network validators."""
+    pact_id = f"rubric-fallback-{int(time.time())}"
+    ok, receipt = write(client_a, enforcer_address, "create_pact", [
+        pact_id, "Original commitment rubric", client_b.local_account.address,
+        COMMITMENT_A, COMMITMENT_B, str(STAKE_WEI), "none", 3600, 3600, "{}",
+    ], value=STAKE_WEI)
+    assert ok, f"create_pact failed: {revert_reason(receipt)}"
+    rubrics = {}
+    for side, commitment in (("A", COMMITMENT_A), ("B", COMMITMENT_B)):
+        rubric = read_json(client_a, enforcer_address, "get_rubric", [pact_id, side])
+        assert rubric["checklist"] == [commitment]
+        assert rubric["checklist_items"] == 1
+        assert rubric["authored_by_panel"] is False
+        rubrics[side] = rubric
+    ok, receipt = write(client_a, enforcer_address, "withdraw_proposal", [pact_id])
+    assert ok, f"withdraw_proposal failed: {revert_reason(receipt)}"
+    STATE["rubric_fallback"] = {"pactId": pact_id, "rubrics": rubrics, "withdrawn": True}
+
+
 def test_write_the_verification_artifact(client_a, enforcer_address, release_address):
     """Record live observations for artifacts/live-verification.json."""
     pact_id = STATE.get("pact_id")
@@ -625,6 +645,7 @@ def test_write_the_verification_artifact(client_a, enforcer_address, release_add
         "adjudicationB": STATE.get("adjudication_b"),
         "settlement": STATE.get("settlement"),
         "registryInfo": reg_info,
+        "deterministicRubricVerification": STATE.get("rubric_fallback"),
         "transactions": STATE.get("transactions", []),
         "recordedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }

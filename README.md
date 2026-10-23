@@ -17,12 +17,12 @@ A core differentiator of this primitive is **dependency chaining**: when party B
 | Network | GenLayer StudioNet |
 | Chain ID | 61999 |
 | RPC endpoint | `https://studio.genlayer.com/api` |
-| Contract address | `0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231` |
-| Explorer | https://explorer-studio.genlayer.com/address/0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231 |
-| Deployment transaction | `0xc01c37d7b573cb5a706389ef7166fd5c9b4003e5d53550cff6d15eb64fe71ce7` |
+| Contract address | `0x5aBBC395BE975144ef1DC262292529Cab0f6A12E` |
+| Explorer | https://explorer-studio.genlayer.com/address/0x5aBBC395BE975144ef1DC262292529Cab0f6A12E |
+| Deployment transaction | `0x1c411543227f3d7035722f64e2f00f1911a1435d5f9d97d7dbd451f88e0222f6` |
 | Deployer | `0xBC1399c55538eC034d4Da550C03c34Ae0C357f53` |
 | GenVM runner | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
-| Source SHA-256 | `5da1cf7d0ada0050d5a89b9cddf967d7883aab63f862b0c2f3c41db30641c4dc` |
+| Source SHA-256 | `8f463596d69c86289c4ad4bcb9e30800677839c0bc71b707bad81907a2eb1650` |
 
 The deployed bytecode matches `contracts/bilateral_commitment_enforcer.py` byte-for-byte. The live test suite asserts this exact match via `gen_getContractCode` on every run. Verify locally:
 
@@ -30,15 +30,15 @@ The deployed bytecode matches `contracts/bilateral_commitment_enforcer.py` byte-
 curl -sS https://studio.genlayer.com/api \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"gen_getContractCode",
-       "params":["0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231"]}' \
+       "params":["0x5aBBC395BE975144ef1DC262292529Cab0f6A12E"]}' \
   | python3 -c 'import base64,json,sys; sys.stdout.buffer.write(base64.b64decode(json.load(sys.stdin)["result"]))' \
   | diff - contracts/bilateral_commitment_enforcer.py && echo identical
 ```
 
 The reference consumer used by the live suite is deployed at
-[`0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35`](https://explorer-studio.genlayer.com/address/0xcb9Fb88A019F22cbd11108681310C8c5e2bE2E35) (transaction `0x608c364607889330e078ffa3a5086f7d298d732bde58f04a9104438a01e6ac1a`, SHA-256 `405bb1314ed7189da1e653e2b90f7c3eebac5c4c8605b796a82fc1036bf6b411`).
+[`0x1BeB9032941eEF5F74C293Ed713F85C162e53E66`](https://explorer-studio.genlayer.com/address/0x1BeB9032941eEF5F74C293Ed713F85C162e53E66) (transaction `0x41903aa1b0ae3077dce2ec8a35c8dc69ba4e95ea2cb5d2fe9dc9c8c41167544e`, SHA-256 `405bb1314ed7189da1e653e2b90f7c3eebac5c4c8605b796a82fc1036bf6b411`).
 
-Full deployment metadata is stored in `artifacts/deployment.json`. The live verification transcript containing all 14 transactions and consensus vote breakdowns is stored in `artifacts/live-verification.json`.
+Full deployment metadata is stored in `artifacts/deployment.json`. The live verification transcript containing all 16 transactions and consensus vote breakdowns is stored in `artifacts/live-verification.json`.
 
 ---
 
@@ -134,7 +134,8 @@ Three non-deterministic operations execute via GenLayer Optimistic Democracy (`g
 
 1. **Admissibility (`create_pact`)**:
    - Leader prompts LLM to verify whether commitments name concrete, verifiable deliverables.
-   - Validators re-evaluate and agree on strict fields: `adjudicable` (boolean), `defect` classification, and checklist item count.
+   - Rubrics are determined from transaction inputs: an explicit ordered checklist, or the full original commitment as one item when omitted. No model-generated deliverables are stored. Supply a granular checklist for the full range of partial-credit tiers; the single-item fallback yields NONE, PARTIAL or COMPLETE.
+   - Validators independently re-evaluate `adjudicable` (boolean) and `defect` classification and require exact ordered rubric text. Deterministic code checks that text against the inputs again before storage. Consent digests preserve punctuation, case, operators and Unicode.
 
 2. **Evidence Adjudication (`submit_evidence`)**:
    - Leader fetches the evidence URL and scores each stored checklist item.
@@ -232,6 +233,6 @@ python3 -m pytest tests/test_documentation.py -v
 Executes against live validators on GenLayer StudioNet with real evidence documents:
 
 ```bash
-GENLAYER_PRIVATE_KEY=0x... ENFORCER_ADDRESS=0xb7f9489E5C0b3F4f2004806a7E0646F5f9A2f231 \
+GENLAYER_PRIVATE_KEY=0x... ENFORCER_ADDRESS=0x5aBBC395BE975144ef1DC262292529Cab0f6A12E \
   python3 -m pytest tests/test_live_studionet.py -v -s
 ```
